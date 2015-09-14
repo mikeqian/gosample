@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -21,9 +22,7 @@ type Ing struct {
 
 func getLastIng() (text string) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "http://ing.cnblogs.com/ajax/ing/GetIngList?IngListType=my&PageIndex=1&PageSize=1&Tag=&_=1441948524646", strings.NewReader(""))
-	if err != nil {
-	}
+	req, _ := http.NewRequest("GET", "http://ing.cnblogs.com/ajax/ing/GetIngList?IngListType=my&PageIndex=1&PageSize=1&Tag=&_=1441948524646", nil)
 
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
 	req.Header.Set("Cookie", cookie)
@@ -40,7 +39,7 @@ func getLastIng() (text string) {
 }
 
 func insertIng(i int) {
-	ing := new(Ing)
+	ing := Ing{}
 	ing.PublicFlag = 1
 	ing.Content = "mm" + strconv.Itoa(i)
 	text, _ := json.Marshal(ing)
@@ -56,10 +55,7 @@ func insertIng(i int) {
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		// handle error
-	}
+	body, _ := ioutil.ReadAll(resp.Body)
 
 	fmt.Println(string(body))
 }
@@ -89,12 +85,13 @@ func deleteIng(ing string) {
 }
 
 func main() {
-	for i := 1; i < 100; i++ {
+	for i := 1; i < 20; i++ {
 		ing := getLastIng()
 		if strings.Contains(ing, "幸运闪") {
 			insertIng(i)
 		} else {
 			deleteIng(ing)
 		}
+		time.Sleep(15 * time.Minute)
 	}
 }

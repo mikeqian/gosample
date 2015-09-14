@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"time"
 )
 
 func main() {
@@ -41,7 +42,7 @@ func main() {
 		var uid int
 		var username string
 		var department string
-		var created string
+		var created time.Time
 		err = rows.Scan(&uid, &username, &department, &created)
 		checkErr(err)
 		fmt.Println(uid)
