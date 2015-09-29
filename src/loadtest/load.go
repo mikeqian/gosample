@@ -1,3 +1,4 @@
+///todo: replace the flag to config.json
 package main
 
 import (
@@ -5,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"runtime"
 	"strings"
 	"time"
 )
@@ -49,58 +49,21 @@ func readLines(filename string) (lines []string, err error) {
 	return
 }
 
-func showHelp() {
-	fmt.Println("version:", VERSION)
-	fmt.Println("Usage: load [-c clients] [-t Seconds] [-url url]")
-	fmt.Println("")
-	fmt.Println("Options:")
-	fmt.Println("-h\t:", "help")
-	fmt.Println("-c\t:", "clients number")
-	fmt.Println("-t\t:", "how long you want to bench")
-	fmt.Println("-url\t:", "bench url")
-	fmt.Println("-f\t:", "url list file, one url per line.")
-}
-
 func main() {
 	flag.Parse()
 
-	if *help {
-		showHelp()
-		return
-	}
-
-	filename := *file
-	if *url == "" && filename == "" {
-		fmt.Println("Please input url.")
-		return
-	}
-
-	if filename != "" {
-		lines, err := readLines(filename)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		urls = lines
-	}
-	fmt.Println(*client, "clients, run", *seconds, "seconds")
-	runtime.GOMAXPROCS(*client)
+	fmt.Println(*client, "clients, run", seconds, "seconds")
 
 	success, fail := 0, 0
 	c := make(chan bool)
 
-	st := time.Now().Unix()
-	for st+*seconds > time.Now().Unix() {
-		if filename != "" {
-			for _, uri := range urls {
-				go fetch(uri, c)
-			}
-		} else {
+	endTime := time.Now().Add(time.Duration(*seconds) * time.Second)
+	for endTime.Before(time.Now()) {
+		for i := 0; i < *client; i++ {
 			go fetch(*url, c)
 		}
-
 		status := <-c
-		if status == true {
+		if status {
 			success += 1
 		} else {
 			fail += 1
